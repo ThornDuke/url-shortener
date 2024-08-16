@@ -1,24 +1,74 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const dns = require("dns");
+const database = require("./database");
+
 const app = express();
 
-// Basic Configuration
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 
-app.use('/public', express.static(`${process.cwd()}/public`));
+app.use("/public", express.static(`${process.cwd()}/public`));
 
-app.get('/', function(req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+const urlEncodedParser = bodyParser.urlencoded({ extended: false });
+const jsonParser = bodyParser.json();
+
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+app.get("/", function (req, res) {
+  res.sendFile(process.cwd() + "/views/index.html");
 });
 
-// Your first API endpoint
-app.get('/api/hello', function(req, res) {
-  res.json({ greeting: 'hello API' });
+// First API endpoint
+app.get("/api/hello", function (req, res) {
+  res.json({ greeting: "hello API" });
 });
 
-app.listen(port, function() {
+app.post("/api/test", urlEncodedParser, (req, res) => {
+  const urlAddress = req.body.url;
+  if (isValidUrl(urlAddress)) {
+    database.createAndSaveUrl(urlAddress, (err, data) => {
+      if (err) {
+        res.json({
+          error: "failed saving url: " + err,
+        });
+      } else {
+        res.json({
+          original_url: data.url,
+          short_url: data.shortenedUrl,
+        });
+      }
+    });
+  } else {
+    res.json({
+      error: `invalid url`,
+    });
+  }
+});
+
+app.get("/api/shorturl/:url", (req, res) => {
+  const url = req.params.url;
+  database.findUrlString(url, (err, data) => {
+    if (err || data === null) {
+      res.json({
+        error: "failed retrieving url: " + url,
+      });
+    } else {
+      res.redirect(data.url);
+    }
+  });
+});
+
+app.listen(port, function () {
   console.log(`Listening on port ${port}`);
 });
