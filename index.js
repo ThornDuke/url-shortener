@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const dns = require("dns");
 const database = require("./database");
 
 const app = express();
@@ -14,7 +13,6 @@ app.use(cors());
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
-const jsonParser = bodyParser.json();
 
 const isValidUrl = (url) => {
   try {
@@ -34,7 +32,7 @@ app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
 
-app.post("/api/test", urlEncodedParser, (req, res) => {
+app.post("/api/shorturl", urlEncodedParser, (req, res) => {
   const urlAddress = req.body.url;
   if (isValidUrl(urlAddress)) {
     database.createAndSaveUrl(urlAddress, (err, data) => {
