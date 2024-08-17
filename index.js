@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const urlExists = require("url-exist");
 const database = require("./database");
 
 const app = express();
@@ -15,12 +16,9 @@ app.use("/public", express.static(`${process.cwd()}/public`));
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
 
 const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch (err) {
-    return false;
-  }
+  urlExists(url).then((result) => {
+    return result;
+  });
 };
 
 app.get("/", function (req, res) {
