@@ -7,7 +7,7 @@ const createAndSaveUrl = (url, done) => {
     .findOne({})
     .sort({ shortenedUrl: -1 })
     .exec((err, data) => {
-      let max = data.shortenedUrl || 0;
+      let max = data?.shortenedUrl || 0;
 
       doc.url = url;
       doc.shortenedUrl = max + 1;
